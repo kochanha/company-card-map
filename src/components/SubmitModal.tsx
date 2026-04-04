@@ -91,12 +91,23 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
       return;
     }
 
+    const pricePerPerson = parseInt(form.pricePerPerson, 10);
+    if (Number.isNaN(pricePerPerson) || pricePerPerson <= 0) {
+      setError("올바른 인당 가격을 입력해주세요.");
+      setSubmitting(false);
+      return;
+    }
+
+    const sanitizedRecommendation = form.recommendation
+      .slice(0, 500)
+      .replace(/[<>]/g, "");
+
     const { error: dbError } = await supabase.from("submissions").insert({
       name: placeName || "제보 식당",
       category: "한식",
       price_range: form.priceRange,
-      price_per_person: parseInt(form.pricePerPerson, 10),
-      recommendation: form.recommendation || null,
+      price_per_person: pricePerPerson,
+      recommendation: sanitizedRecommendation || null,
       map_url: form.mapUrl,
     });
 
