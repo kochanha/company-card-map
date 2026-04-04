@@ -57,7 +57,7 @@ export default function Home() {
       />
 
       {/* Main content area */}
-      <div className="flex-1 min-h-0 pt-[5.5rem] relative">
+      <div className="flex-1 min-h-0 pt-[6rem] relative">
         {/* Mobile toggle */}
         <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
           <button
