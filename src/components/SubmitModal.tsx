@@ -4,6 +4,11 @@ import { useState } from "react";
 import { PriceRange } from "@/types/restaurant";
 import { supabase } from "@/lib/supabase";
 import { useModalA11y } from "@/hooks/useModalA11y";
+import {
+  parseMapUrl,
+  providerLabel,
+  type MapProvider,
+} from "@/lib/map-url-parser";
 
 interface SubmitModalProps {
   isOpen: boolean;
@@ -24,15 +29,15 @@ const INITIAL_FORM: FormData = {
   recommendation: "",
 };
 
-const NAVER_URL_PATTERN =
-  /^https?:\/\/(map\.naver\.com|naver\.me)/;
-
 export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
   const [form, setForm] = useState<FormData>(INITIAL_FORM);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [placeName, setPlaceName] = useState<string | null>(null);
+  const [detectedProvider, setDetectedProvider] = useState<MapProvider | null>(
+    null,
+  );
   const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
@@ -44,35 +49,55 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleUrlPaste = async (url: string) => {
-    updateField("mapUrl", url);
+  const handleUrlPaste = async (input: string) => {
+    updateField("mapUrl", input);
     setPlaceName(null);
+    setDetectedProvider(null);
+    setError(null);
 
-    if (!NAVER_URL_PATTERN.test(url)) return;
+    const parsed = parseMapUrl(input);
+    if (!parsed.ok) return;
 
-    // place ID 추출
-    const match = url.match(/place\/(\d+)/);
-    if (!match) return;
+    const { provider, placeId } = parsed.result;
+    setDetectedProvider(provider);
 
-    try {
-      const res = await fetch(
-        `https://map.naver.com/p/api/place/summary/${match[1]}`,
-        {
-          headers: {
-            "User-Agent": "Mozilla/5.0",
-            Referer: "https://map.naver.com/",
+    if (provider === "naver" && placeId) {
+      try {
+        const res = await fetch(
+          `https://map.naver.com/p/api/place/summary/${placeId}`,
+          {
+            headers: {
+              "User-Agent": "Mozilla/5.0",
+              Referer: "https://map.naver.com/",
+            },
           },
-        },
-      );
-      if (res.ok) {
-        const json = await res.json();
-        const detail = json?.data?.placeDetail;
-        if (detail?.name) {
-          setPlaceName(detail.name);
+        );
+        if (res.ok) {
+          const json = await res.json();
+          const detail = json?.data?.placeDetail;
+          if (detail?.name) {
+            setPlaceName(detail.name);
+          }
         }
+      } catch {
+        // 미리보기 실패해도 제보는 가능
       }
-    } catch {
-      // 미리보기 실패해도 제보는 가능
+    }
+
+    if (provider === "kakao" && placeId) {
+      try {
+        const res = await fetch(
+          `https://place.map.kakao.com/main/v/${placeId}`,
+        );
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.basicInfo?.placenamefull) {
+            setPlaceName(json.basicInfo.placenamefull);
+          }
+        }
+      } catch {
+        // 미리보기 실패해도 제보는 가능
+      }
     }
   };
 
@@ -81,14 +106,9 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
     setSubmitting(true);
     setError(null);
 
-    if (!form.mapUrl || !NAVER_URL_PATTERN.test(form.mapUrl)) {
-      setError("네이버지도 링크를 입력해주세요.");
-      setSubmitting(false);
-      return;
-    }
-
-    if (!form.mapUrl.match(/place\/(\d+)/)) {
-      setError("식당의 네이버지도 링크가 아닌 것 같습니다. 식당 페이지의 공유 링크를 붙여넣어주세요.");
+    const parsed = parseMapUrl(form.mapUrl);
+    if (!parsed.ok) {
+      setError(parsed.error);
       setSubmitting(false);
       return;
     }
@@ -104,13 +124,15 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
       .slice(0, 500)
       .replace(/[<>]/g, "");
 
+    const { provider, placeId, originalUrl } = parsed.result;
+
     const { error: dbError } = await supabase.from("submissions").insert({
       name: placeName || "제보 식당",
       category: "한식",
       price_range: form.priceRange,
       price_per_person: pricePerPerson,
       recommendation: sanitizedRecommendation || null,
-      map_url: form.mapUrl,
+      map_url: originalUrl,
     });
 
     setSubmitting(false);
@@ -125,6 +147,7 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
       setSubmitted(false);
       setForm(INITIAL_FORM);
       setPlaceName(null);
+      setDetectedProvider(null);
       onClose();
     }, 2000);
   };
@@ -162,23 +185,33 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  네이버지도 링크 *
+                  식당 링크 *
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   required
                   value={form.mapUrl}
                   onChange={(e) => handleUrlPaste(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://map.naver.com/p/entry/place/..."
+                  placeholder="네이버지도 또는 카카오맵 링크를 붙여넣으세요"
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  네이버지도 앱/웹에서 식당 검색 → 공유 → 링크 복사
+                  네이버지도/카카오맵에서 식당 검색 → 공유 → 링크 복사
                 </p>
-                {placeName && (
+                {detectedProvider && !placeName && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      📍 {providerLabel(detectedProvider)} 링크 감지됨
+                    </p>
+                  </div>
+                )}
+                {placeName && detectedProvider && (
                   <div className="mt-2 p-2 bg-green-50 rounded-lg">
                     <p className="text-sm text-green-800 font-medium">
-                      ✅ {placeName}
+                      ✅ {placeName}{" "}
+                      <span className="text-green-600 font-normal">
+                        ({providerLabel(detectedProvider)})
+                      </span>
                     </p>
                   </div>
                 )}
@@ -228,6 +261,7 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
                     updateField("recommendation", e.target.value)
                   }
                   rows={2}
+                  maxLength={500}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                   placeholder="법카로 갈 때 꿀팁을 알려주세요 (예: 런치 코스가 한도에 딱 맞음)"
                 />
