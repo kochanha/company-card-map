@@ -40,93 +40,92 @@ export default function FilterBar({
 }: FilterBarProps) {
   return (
     <div className="fixed top-14 left-0 right-0 z-40 bg-white/90 backdrop-blur-sm border-b border-gray-100 px-4 py-2">
-      <div className="max-w-screen-xl mx-auto flex flex-col sm:flex-row gap-2">
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+      <div className="max-w-screen-xl mx-auto flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+        <button
+          onClick={() => onPriceRangeChange(null)}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            selectedPriceRange === null
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          전체 가격
+        </button>
+        {PRICE_RANGES.map((range) => (
           <button
-            onClick={() => onPriceRangeChange(null)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              selectedPriceRange === null
+            key={range}
+            onClick={() =>
+              onPriceRangeChange(
+                selectedPriceRange === range ? null : range,
+              )
+            }
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              selectedPriceRange === range
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            전체 가격
+            {range}
           </button>
-          {PRICE_RANGES.map((range) => (
-            <button
-              key={range}
-              onClick={() =>
-                onPriceRangeChange(
-                  selectedPriceRange === range ? null : range,
-                )
-              }
-              className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedPriceRange === range
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              인당 {range}
-            </button>
-          ))}
+        ))}
 
-          <span className="shrink-0 w-px bg-gray-300 mx-1" />
+        <span className="shrink-0 w-px bg-gray-300" />
 
+        <button
+          onClick={() => onMinRatingChange(null)}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            selectedMinRating === null
+              ? "bg-yellow-500 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          전체 평점
+        </button>
+        {RATING_FILTERS.map((rf) => (
           <button
-            onClick={() => onMinRatingChange(null)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              selectedMinRating === null
+            key={rf.label}
+            onClick={() =>
+              onMinRatingChange(
+                selectedMinRating === rf.min ? null : rf.min,
+              )
+            }
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              selectedMinRating === rf.min
                 ? "bg-yellow-500 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            전체 평점
+            ⭐{rf.label}
           </button>
-          {RATING_FILTERS.map((rf) => (
-            <button
-              key={rf.label}
-              onClick={() =>
-                onMinRatingChange(
-                  selectedMinRating === rf.min ? null : rf.min,
-                )
-              }
-              className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedMinRating === rf.min
-                  ? "bg-yellow-500 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              ⭐ {rf.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+        ))}
+
+        <span className="shrink-0 w-px bg-gray-300" />
+
+        <button
+          onClick={() => onCategoryChange(null)}
+          className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            selectedCategory === null
+              ? "bg-amber-500 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          전체
+        </button>
+        {CATEGORIES.map((cat) => (
           <button
-            onClick={() => onCategoryChange(null)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              selectedCategory === null
+            key={cat}
+            onClick={() =>
+              onCategoryChange(selectedCategory === cat ? null : cat)
+            }
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              selectedCategory === cat
                 ? "bg-amber-500 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            전체 카테고리
+            {cat}
           </button>
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() =>
-                onCategoryChange(selectedCategory === cat ? null : cat)
-              }
-              className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                selectedCategory === cat
-                  ? "bg-amber-500 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        ))}
       </div>
     </div>
   );
