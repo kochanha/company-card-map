@@ -72,13 +72,16 @@ export default function Home() {
         <div className="h-full flex">
           {/* Map */}
           <div
-            className={`flex-1 ${showList ? "hidden sm:block" : "block"}`}
+            className={`flex-1 relative ${showList ? "hidden sm:block" : "block"}`}
           >
             <LeafletMap
               restaurants={filteredRestaurants}
               selectedId={selectedRestaurantId}
               onSelectRestaurant={setSelectedRestaurantId}
             />
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[500] w-[320px] sm:w-[468px]">
+              <AdBanner />
+            </div>
           </div>
 
           {/* Restaurant list sidebar */}
@@ -125,7 +128,6 @@ export default function Home() {
       </div>
 
       <WelcomeModal />
-      <AdBanner />
       <SubmitModal
         isOpen={isSubmitOpen}
         onClose={() => setIsSubmitOpen(false)}

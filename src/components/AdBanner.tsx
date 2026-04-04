@@ -9,7 +9,6 @@ declare global {
 }
 
 export default function AdBanner() {
-  const adRef = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
 
   useEffect(() => {
@@ -23,10 +22,9 @@ export default function AdBanner() {
   }, []);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex justify-center">
+    <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 overflow-hidden">
       <ins
         className="adsbygoogle"
-        ref={adRef}
         style={{ display: "block", width: "100%", height: "60px" }}
         data-ad-client="ca-pub-5469568210848543"
         data-ad-slot="3465314933"
