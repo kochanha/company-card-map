@@ -39,8 +39,8 @@ export default function FilterBar({
   onMinRatingChange,
 }: FilterBarProps) {
   return (
-    <div className="fixed top-14 left-0 right-0 z-40 bg-white/90 backdrop-blur-sm border-b border-gray-100 px-4 py-3">
-      <div className="max-w-screen-xl mx-auto flex gap-1.5 overflow-x-auto scrollbar-hide">
+    <div className="fixed top-14 left-0 right-0 z-40 bg-white/90 backdrop-blur-sm border-b border-gray-100">
+      <div className="max-w-screen-xl mx-auto flex gap-1.5 px-4 py-2 overflow-x-auto scrollbar-hide items-center" style={{ WebkitOverflowScrolling: "touch" }}>
         <button
           onClick={() => onPriceRangeChange(null)}
           className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
