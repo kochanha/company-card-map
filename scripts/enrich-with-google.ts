@@ -4,6 +4,8 @@
  */
 
 import * as fs from "fs";
+import { config } from "dotenv";
+config({ path: ".env.local" });
 
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY!;
 

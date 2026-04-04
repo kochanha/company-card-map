@@ -3,6 +3,9 @@
  * 실행: npx tsx scripts/fetch-restaurants.ts
  */
 
+import { config } from "dotenv";
+config({ path: ".env.local" });
+
 const KAKAO_REST_KEY = process.env.KAKAO_REST_KEY!;
 
 // 검색 키워드 - 법카로 갈 만한 고급 식당 키워드
@@ -39,6 +42,10 @@ const AREAS = [
   { name: "마포", x: "126.9246", y: "37.5665" },
   { name: "을지로", x: "126.9910", y: "37.5660" },
   { name: "성수", x: "127.0560", y: "37.5445" },
+  { name: "마곡", x: "126.8372", y: "37.5595" },
+  { name: "영등포", x: "126.8983", y: "37.5171" },
+  { name: "중랑", x: "127.0928", y: "37.5953" },
+  { name: "노원", x: "127.0565", y: "37.6542" },
   // 인천
   { name: "인천 부평", x: "126.7218", y: "37.5074" },
   { name: "인천 송도", x: "126.6567", y: "37.3830" },
