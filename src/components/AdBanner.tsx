@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { ADSENSE_PUBLISHER_ID, ADSENSE_AD_SLOT } from "@/config/constants";
 
 declare global {
   interface Window {
@@ -26,8 +27,8 @@ export default function AdBanner() {
       <ins
         className="adsbygoogle"
         style={{ display: "block", width: "100%", height: "60px" }}
-        data-ad-client="ca-pub-5469568210848543"
-        data-ad-slot="3465314933"
+        data-ad-client={ADSENSE_PUBLISHER_ID}
+        data-ad-slot={ADSENSE_AD_SLOT}
         data-ad-format="horizontal"
         data-full-width-responsive="true"
       />

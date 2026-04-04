@@ -7,6 +7,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "leaflet.markercluster";
 import { Restaurant } from "@/types/restaurant";
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from "@/config/constants";
 
 interface LeafletMapProps {
   restaurants: readonly Restaurant[];
@@ -136,8 +137,8 @@ export default function LeafletMap({
     if (!mapRef.current || mapInstanceRef.current) return;
 
     const map = L.map(mapRef.current, {
-      center: [37.5665, 126.978],
-      zoom: 12,
+      center: [DEFAULT_MAP_CENTER.lat, DEFAULT_MAP_CENTER.lng],
+      zoom: DEFAULT_MAP_ZOOM,
       zoomControl: true,
     });
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useModalA11y } from "@/hooks/useModalA11y";
+import { CONTACT_EMAIL } from "@/config/constants";
 
 interface HeaderProps {
   onSubmitClick: () => void;
@@ -65,10 +66,10 @@ export default function Header({ onSubmitClick }: HeaderProps) {
               <div>
                 <p className="text-sm text-gray-500">이메일</p>
                 <a
-                  href="mailto:kochanha@gmail.com"
+                  href={`mailto:${CONTACT_EMAIL}`}
                   className="text-sm font-medium text-blue-600 hover:underline"
                 >
-                  kochanha@gmail.com
+                  {CONTACT_EMAIL}
                 </a>
               </div>
               <p className="text-xs text-gray-400 pt-2 border-t border-gray-100">

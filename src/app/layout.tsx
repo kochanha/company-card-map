@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ADSENSE_PUBLISHER_ID } from "@/config/constants";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,10 +17,10 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full">
       <head>
-        <meta name="google-adsense-account" content="ca-pub-5469568210848543" />
+        <meta name="google-adsense-account" content={ADSENSE_PUBLISHER_ID} />
         <script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5469568210848543"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_PUBLISHER_ID}`}
           crossOrigin="anonymous"
         />
       </head>
