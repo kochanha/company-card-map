@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Category, PriceRange, Restaurant } from "@/types/restaurant";
 import { restaurants as allRestaurants } from "@/data/restaurants";
 import Header from "@/components/Header";
@@ -33,9 +33,20 @@ export default function Home() {
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
   const [showList, setShowList] = useState(false);
   const [visibleCount, setVisibleCount] = useState(30);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {},
+        { enableHighAccuracy: true, timeout: 5000 },
+      );
+    }
+  }, []);
 
   const filteredRestaurants = useMemo(() => {
-    return allRestaurants.filter((r: Restaurant) => {
+    const filtered = allRestaurants.filter((r: Restaurant) => {
       if (selectedCategory && r.category !== selectedCategory) return false;
       if (selectedPriceRange && r.priceRange !== selectedPriceRange)
         return false;
@@ -43,7 +54,17 @@ export default function Home() {
         return false;
       return true;
     });
-  }, [allRestaurants, selectedCategory, selectedPriceRange, selectedMinRating]);
+
+    if (userLocation) {
+      return [...filtered].sort((a, b) => {
+        const distA = (a.lat - userLocation.lat) ** 2 + (a.lng - userLocation.lng) ** 2;
+        const distB = (b.lat - userLocation.lat) ** 2 + (b.lng - userLocation.lng) ** 2;
+        return distA - distB;
+      });
+    }
+
+    return filtered;
+  }, [allRestaurants, selectedCategory, selectedPriceRange, selectedMinRating, userLocation]);
 
   return (
     <div className="h-full flex flex-col">
