@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
@@ -31,11 +31,17 @@ const CATEGORY_EMOJI: Record<string, string> = {
   해산물: "🦞",
 };
 
-function createCustomIcon(restaurant: Restaurant) {
+/** 아이콘 캐시 — 동일 restaurant ID에 대해 divIcon을 재생성하지 않음 */
+const iconCache = new Map<string, L.DivIcon>();
+
+function getOrCreateIcon(restaurant: Restaurant): L.DivIcon {
+  const cached = iconCache.get(restaurant.id);
+  if (cached) return cached;
+
   const color = PRICE_MARKER_COLOR[restaurant.priceRange] ?? "#6b7280";
   const emoji = CATEGORY_EMOJI[restaurant.category] ?? "🍴";
 
-  return L.divIcon({
+  const icon = L.divIcon({
     className: "",
     html: `<div style="
       display:inline-flex;align-items:center;gap:3px;
@@ -61,6 +67,52 @@ function createCustomIcon(restaurant: Restaurant) {
     iconSize: [0, 0],
     iconAnchor: [0, 0],
   });
+
+  iconCache.set(restaurant.id, icon);
+  return icon;
+}
+
+function buildPopupContent(r: Restaurant): string {
+  return `
+    <div style="font-family:-apple-system,sans-serif;line-height:1.5;min-width:220px;">
+      <strong style="font-size:15px;color:#111;">${r.name}</strong>
+      <p style="margin:4px 0 0;font-size:12px;color:#666;">${r.address}</p>
+      <p style="margin:6px 0 0;font-size:12px;color:#333;">${r.description}</p>
+      <div style="margin-top:8px;padding:6px 8px;background:#fffbeb;border-radius:6px;">
+        <p style="margin:0;font-size:11px;color:#92400e;">💡 ${r.recommendation}</p>
+      </div>
+      <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:11px;color:#666;">✅ ${r.licenseType}</span>
+        <span style="font-size:13px;font-weight:700;color:${PRICE_MARKER_COLOR[r.priceRange]};">인당 ${r.pricePerPerson.toLocaleString()}원</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <a href="https://map.kakao.com/link/map/${encodeURIComponent(r.name)},${r.lat},${r.lng}" target="_blank" rel="noopener noreferrer" style="flex:1;text-align:center;padding:6px;background:#fde047;color:#713f12;font-size:11px;font-weight:600;border-radius:6px;text-decoration:none;">카카오맵</a>
+        <a href="https://map.naver.com/v5/search/${encodeURIComponent(r.name)}?c=${r.lng},${r.lat},15,0,0,0,dh" target="_blank" rel="noopener noreferrer" style="flex:1;text-align:center;padding:6px;background:#22c55e;color:white;font-size:11px;font-weight:600;border-radius:6px;text-decoration:none;">네이버지도</a>
+      </div>
+    </div>`;
+}
+
+function createClusterIcon(cluster: L.MarkerCluster): L.DivIcon {
+  const count = cluster.getChildCount();
+  let diameter = 36;
+  if (count > 50) {
+    diameter = 48;
+  } else if (count > 20) {
+    diameter = 42;
+  }
+  return L.divIcon({
+    html: `<div style="
+      width:${diameter}px;height:${diameter}px;
+      background:rgba(234,88,12,0.9);
+      border:3px solid white;
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      color:white;font-weight:700;font-size:14px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.3);
+    ">${count}</div>`,
+    className: "",
+    iconSize: L.point(diameter, diameter),
+  });
 }
 
 export default function LeafletMap({
@@ -72,6 +124,13 @@ export default function LeafletMap({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null);
   const markersMapRef = useRef<Map<string, L.Marker>>(new Map());
+  const prevRestaurantIdsRef = useRef<Set<string>>(new Set());
+
+  // restaurant ID set을 메모이제이션
+  const restaurantIds = useMemo(
+    () => new Set(restaurants.map((r) => r.id)),
+    [restaurants],
+  );
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -90,7 +149,6 @@ export default function LeafletMap({
 
     mapInstanceRef.current = map;
 
-    // 현재 위치로 이동
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -107,9 +165,7 @@ export default function LeafletMap({
             .addTo(map)
             .bindPopup("현재 위치");
         },
-        () => {
-          // 위치 거부 시 기본 서울 유지
-        },
+        () => {},
         { enableHighAccuracy: true, timeout: 5000 },
       );
     }
@@ -125,78 +181,76 @@ export default function LeafletMap({
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // 기존 클러스터 제거
-    if (clusterRef.current) {
-      map.removeLayer(clusterRef.current);
-    }
+    const prevIds = prevRestaurantIdsRef.current;
+    const currentMarkers = markersMapRef.current;
 
-    const cluster = L.markerClusterGroup({
-      maxClusterRadius: 40,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: false,
-      iconCreateFunction: (c) => {
-        const count = c.getChildCount();
-        let size = "small";
-        let diameter = 36;
-        if (count > 50) {
-          size = "large";
-          diameter = 48;
-        } else if (count > 20) {
-          size = "medium";
-          diameter = 42;
-        }
-        return L.divIcon({
-          html: `<div style="
-            width:${diameter}px;height:${diameter}px;
-            background:rgba(234,88,12,0.9);
-            border:3px solid white;
-            border-radius:50%;
-            display:flex;align-items:center;justify-content:center;
-            color:white;font-weight:700;font-size:14px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.3);
-          ">${count}</div>`,
-          className: "",
-          iconSize: L.point(diameter, diameter),
-        });
-      },
-    });
-
-    const newMarkersMap = new Map<string, L.Marker>();
-
-    restaurants.forEach((r) => {
-      const marker = L.marker([r.lat, r.lng], {
-        icon: createCustomIcon(r),
+    // 첫 로드 또는 클러스터가 없으면 전체 구성
+    if (!clusterRef.current) {
+      const cluster = L.markerClusterGroup({
+        maxClusterRadius: 40,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        iconCreateFunction: createClusterIcon,
       });
 
-      const popupContent = `
-        <div style="font-family:-apple-system,sans-serif;line-height:1.5;min-width:220px;">
-          <strong style="font-size:15px;color:#111;">${r.name}</strong>
-          <p style="margin:4px 0 0;font-size:12px;color:#666;">${r.address}</p>
-          <p style="margin:6px 0 0;font-size:12px;color:#333;">${r.description}</p>
-          <div style="margin-top:8px;padding:6px 8px;background:#fffbeb;border-radius:6px;">
-            <p style="margin:0;font-size:11px;color:#92400e;">💡 ${r.recommendation}</p>
-          </div>
-          <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:11px;color:#666;">✅ ${r.licenseType}</span>
-            <span style="font-size:13px;font-weight:700;color:${PRICE_MARKER_COLOR[r.priceRange]};">인당 ${r.pricePerPerson.toLocaleString()}원</span>
-          </div>
-          <div style="display:flex;gap:6px;margin-top:10px;">
-            <a href="https://map.kakao.com/link/map/${encodeURIComponent(r.name)},${r.lat},${r.lng}" target="_blank" rel="noopener noreferrer" style="flex:1;text-align:center;padding:6px;background:#fde047;color:#713f12;font-size:11px;font-weight:600;border-radius:6px;text-decoration:none;">카카오맵</a>
-            <a href="https://map.naver.com/v5/search/${encodeURIComponent(r.name)}?c=${r.lng},${r.lat},15,0,0,0,dh" target="_blank" rel="noopener noreferrer" style="flex:1;text-align:center;padding:6px;background:#22c55e;color:white;font-size:11px;font-weight:600;border-radius:6px;text-decoration:none;">네이버지도</a>
-          </div>
-        </div>`;
+      const newMarkersMap = new Map<string, L.Marker>();
+      restaurants.forEach((r) => {
+        const marker = L.marker([r.lat, r.lng], {
+          icon: getOrCreateIcon(r),
+        });
+        marker.bindPopup(buildPopupContent(r), { maxWidth: 300 });
+        marker.on("click", () => onSelectRestaurant(r.id));
+        cluster.addLayer(marker);
+        newMarkersMap.set(r.id, marker);
+      });
 
-      marker.bindPopup(popupContent, { maxWidth: 300 });
-      marker.on("click", () => onSelectRestaurant(r.id));
+      map.addLayer(cluster);
+      clusterRef.current = cluster;
+      markersMapRef.current = newMarkersMap;
+      prevRestaurantIdsRef.current = restaurantIds;
+      return;
+    }
 
-      cluster.addLayer(marker);
-      newMarkersMap.set(r.id, marker);
-    });
+    // diff 기반 업데이트: 제거할 마커와 추가할 마커만 처리
+    const cluster = clusterRef.current;
 
-    map.addLayer(cluster);
-    clusterRef.current = cluster;
-    markersMapRef.current = newMarkersMap;
-  }, [restaurants, onSelectRestaurant]);
+    // 제거: 이전에 있었지만 현재 없는 마커
+    const toRemove: L.Marker[] = [];
+    for (const prevId of prevIds) {
+      if (!restaurantIds.has(prevId)) {
+        const marker = currentMarkers.get(prevId);
+        if (marker) {
+          toRemove.push(marker);
+          currentMarkers.delete(prevId);
+        }
+      }
+    }
+    if (toRemove.length > 0) {
+      cluster.removeLayers(toRemove);
+    }
+
+    // 추가: 현재 있지만 이전에 없던 마커
+    const toAdd: L.Marker[] = [];
+    const restaurantMap = new Map(restaurants.map((r) => [r.id, r]));
+    for (const id of restaurantIds) {
+      if (!prevIds.has(id)) {
+        const r = restaurantMap.get(id);
+        if (!r) continue;
+        const marker = L.marker([r.lat, r.lng], {
+          icon: getOrCreateIcon(r),
+        });
+        marker.bindPopup(buildPopupContent(r), { maxWidth: 300 });
+        marker.on("click", () => onSelectRestaurant(r.id));
+        toAdd.push(marker);
+        currentMarkers.set(r.id, marker);
+      }
+    }
+    if (toAdd.length > 0) {
+      cluster.addLayers(toAdd);
+    }
+
+    prevRestaurantIdsRef.current = restaurantIds;
+  }, [restaurants, restaurantIds, onSelectRestaurant]);
 
   useEffect(() => {
     if (!selectedId || !mapInstanceRef.current || !clusterRef.current) return;
