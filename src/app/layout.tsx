@@ -15,6 +15,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full">
+      <head>
+        <meta name="google-adsense-account" content="ca-pub-5469568210848543" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5469568210848543"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body className="h-full font-sans antialiased">{children}</body>
     </html>
   );
