@@ -18,6 +18,7 @@ const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
 import RestaurantCard from "@/components/RestaurantCard";
 import SubmitModal from "@/components/SubmitModal";
 import WelcomeModal from "@/components/WelcomeModal";
+import AdBanner from "@/components/AdBanner";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -59,7 +60,7 @@ export default function Home() {
       {/* Main content area */}
       <div className="flex-1 min-h-0 pt-[6rem] relative">
         {/* Mobile toggle */}
-        <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
+        <div className="sm:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-30">
           <button
             onClick={() => setShowList(!showList)}
             className="px-6 py-3 bg-gray-900 text-white rounded-full shadow-lg text-sm font-medium"
@@ -124,6 +125,7 @@ export default function Home() {
       </div>
 
       <WelcomeModal />
+      <AdBanner />
       <SubmitModal
         isOpen={isSubmitOpen}
         onClose={() => setIsSubmitOpen(false)}
