@@ -29,7 +29,7 @@ export default function AdBanner() {
         ref={adRef}
         style={{ display: "block", width: "100%", height: "60px" }}
         data-ad-client="ca-pub-5469568210848543"
-        data-ad-slot=""
+        data-ad-slot="3465314933"
         data-ad-format="horizontal"
         data-full-width-responsive="true"
       />
