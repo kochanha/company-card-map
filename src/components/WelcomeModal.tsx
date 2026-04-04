@@ -1,33 +1,57 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 const DISMISSED_KEY = "lawkamap_welcome_dismissed";
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-export default function WelcomeModal() {
-  const [isOpen, setIsOpen] = useState(false);
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
 
-  useEffect(() => {
-    const dismissedAt = localStorage.getItem(DISMISSED_KEY);
-    if (!dismissedAt || Date.now() - parseInt(dismissedAt, 10) > ONE_DAY_MS) {
-      setIsOpen(true);
-    }
-  }, []);
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Silently ignore localStorage errors (e.g. incognito mode)
+  }
+}
+
+function shouldShowWelcome(): boolean {
+  const dismissedAt = safeGetItem(DISMISSED_KEY);
+  if (!dismissedAt) return true;
+  return Date.now() - parseInt(dismissedAt, 10) > ONE_DAY_MS;
+}
+
+export default function WelcomeModal() {
+  const [isOpen, setIsOpen] = useState(shouldShowWelcome);
 
   const handleClose = () => {
     setIsOpen(false);
-    localStorage.setItem(DISMISSED_KEY, Date.now().toString());
+    safeSetItem(DISMISSED_KEY, Date.now().toString());
   };
+
+  const modalRef = useModalA11y(isOpen, handleClose);
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcome-title"
+        className="bg-white rounded-2xl w-full max-w-md overflow-hidden"
+      >
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
           <p className="text-3xl mb-2">💳</p>
-          <h2 className="text-xl font-bold">법카맵에 오신 걸 환영합니다!</h2>
+          <h2 id="welcome-title" className="text-xl font-bold">법카맵에 오신 걸 환영합니다!</h2>
           <p className="text-sm text-blue-100 mt-1">
             내 돈 쓰긴 아깝지만, 법카로는 가볼 만한 곳
           </p>

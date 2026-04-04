@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 interface HeaderProps {
   onSubmitClick: () => void;
@@ -8,6 +9,7 @@ interface HeaderProps {
 
 export default function Header({ onSubmitClick }: HeaderProps) {
   const [showContact, setShowContact] = useState(false);
+  const contactModalRef = useModalA11y(showContact, () => setShowContact(false));
 
   return (
     <>
@@ -43,11 +45,15 @@ export default function Header({ onSubmitClick }: HeaderProps) {
           onClick={() => setShowContact(false)}
         >
           <div
+            ref={contactModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="contact-title"
             className="bg-white rounded-2xl w-full max-w-sm p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">문의</h2>
+              <h2 id="contact-title" className="text-lg font-bold text-gray-900">문의</h2>
               <button
                 onClick={() => setShowContact(false)}
                 className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"
