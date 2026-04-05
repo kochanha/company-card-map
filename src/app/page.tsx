@@ -82,9 +82,9 @@ export default function Home() {
       />
 
       {/* Main content area */}
-      <div className="flex-1 min-h-0 mt-[6rem] flex relative">
+      <div className="flex-1 min-h-0 mt-[6rem] flex">
           {/* Map */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative min-w-0">
             <MapErrorBoundary>
               <LeafletMap
                 restaurants={filteredRestaurants}
@@ -94,21 +94,22 @@ export default function Home() {
             </MapErrorBoundary>
           </div>
 
-          {/* Pull tab handle - always visible */}
-          <button
-            onClick={() => setShowList(!showList)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-30 w-7 h-16 bg-white border border-r-0 border-gray-300 rounded-l-lg shadow-md flex items-center justify-center hover:bg-gray-50 transition-all duration-300"
-            style={{ right: showList ? (typeof window !== "undefined" && window.innerWidth < 640 ? "100%" : "400px") : "0" }}
-          >
-            <span className="text-gray-400 text-sm font-bold">{showList ? "›" : "‹"}</span>
-          </button>
+          {/* Pull tab + Sidebar */}
+          <div className="flex shrink-0">
+            {/* Pull tab handle */}
+            <button
+              onClick={() => setShowList(!showList)}
+              className="self-center shrink-0 w-6 h-16 -mr-px bg-white border border-r-0 border-gray-300 rounded-l-lg shadow-md flex items-center justify-center hover:bg-gray-50 z-30"
+            >
+              <span className="text-gray-400 text-sm font-bold">{showList ? "›" : "‹"}</span>
+            </button>
 
-          {/* Restaurant list sidebar */}
-          <div
-            className={`absolute right-0 top-0 bottom-0 z-20 border-l border-gray-200 overflow-y-auto bg-gray-50 transition-all duration-300 ${
-              showList ? "w-full sm:w-[400px]" : "w-0 border-l-0"
-            }`}
-          >
+            {/* Restaurant list sidebar */}
+            <div
+              className={`overflow-y-auto bg-gray-50 border-l border-gray-200 transition-all duration-300 ${
+                showList ? "w-screen sm:w-[400px]" : "w-0 border-l-0 overflow-hidden"
+              }`}
+            >
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-medium text-gray-500">
@@ -151,6 +152,7 @@ export default function Home() {
                 )}
               </div>
             </div>
+          </div>
           </div>
       </div>
 
