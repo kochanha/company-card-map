@@ -103,7 +103,7 @@ export default function Home() {
                 onSelectRestaurant={setSelectedRestaurantId}
               />
             </MapErrorBoundary>
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[500] w-[320px] sm:w-[468px]">
+            <div className="hidden sm:block absolute bottom-16 left-1/2 -translate-x-1/2 z-[500] w-[468px]">
               <AdBanner />
             </div>
           </div>
@@ -151,6 +151,9 @@ export default function Home() {
         </div>
       </div>
 
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[500]">
+        <AdBanner />
+      </div>
       <WelcomeModal />
       <SubmitModal
         isOpen={isSubmitOpen}
