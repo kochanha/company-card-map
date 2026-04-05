@@ -94,24 +94,26 @@ export default function Home() {
             </MapErrorBoundary>
           </div>
 
-          {/* Sidebar toggle button */}
-          <button
-            onClick={() => setShowList(!showList)}
-            className={`absolute top-2 z-30 bg-white shadow-lg border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all ${
-              showList ? "right-[408px] hidden sm:block" : "right-2"
-            }`}
-          >
-            {showList ? "✕" : `📋 ${filteredRestaurants.length}`}
-          </button>
+          {/* Sidebar with pull tab */}
+          <div className={`flex transition-all duration-300 ${
+            showList
+              ? "absolute sm:relative inset-0 sm:inset-auto w-full sm:w-auto z-20"
+              : "absolute right-0 top-0 bottom-0 z-20"
+          }`}>
+            {/* Pull tab handle */}
+            <button
+              onClick={() => setShowList(!showList)}
+              className="self-center -ml-0 sm:ml-0 shrink-0 w-6 h-16 bg-white border border-r-0 border-gray-300 rounded-l-lg shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors z-30"
+            >
+              <span className="text-gray-400 text-xs">{showList ? "›" : "‹"}</span>
+            </button>
 
-          {/* Restaurant list sidebar */}
-          <div
-            className={`border-l border-gray-200 overflow-y-auto bg-gray-50 transition-all ${
-              showList
-                ? "absolute sm:relative inset-0 sm:inset-auto w-full sm:w-[400px] z-20"
-                : "hidden"
-            }`}
-          >
+            {/* Restaurant list sidebar */}
+            <div
+              className={`border-l border-gray-200 overflow-y-auto bg-gray-50 transition-all duration-300 ${
+                showList ? "w-full sm:w-[400px]" : "w-0 overflow-hidden"
+              }`}
+            >
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-medium text-gray-500">
@@ -154,6 +156,7 @@ export default function Home() {
                 )}
               </div>
             </div>
+          </div>
           </div>
       </div>
 
