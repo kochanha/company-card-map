@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PriceRange } from "@/types/restaurant";
 import { supabase } from "@/lib/supabase";
+import { useModalA11y } from "@/hooks/useModalA11y";
 
 interface SubmitModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [placeName, setPlaceName] = useState<string | null>(null);
+  const modalRef = useModalA11y(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -129,7 +131,13 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
 
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="submit-title"
+        className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+      >
         {submitted ? (
           <div className="p-12 text-center">
             <p className="text-5xl mb-4">🎉</p>
@@ -141,7 +149,7 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
         ) : (
           <>
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900">
+              <h2 id="submit-title" className="text-lg font-bold text-gray-900">
                 💳 법카 맛집 제보
               </h2>
               <button
