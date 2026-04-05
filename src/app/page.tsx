@@ -32,7 +32,9 @@ export default function Home() {
   >(null);
   const [selectedMinRating, setSelectedMinRating] = useState<number | null>(null);
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
-  const [showList, setShowList] = useState(false);
+  const [showList, setShowList] = useState(
+    typeof window !== "undefined" ? window.innerWidth >= 640 : true,
+  );
   const [visibleCount, setVisibleCount] = useState(30);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -80,20 +82,9 @@ export default function Home() {
       />
 
       {/* Main content area */}
-      <div className="flex-1 min-h-0 mt-[6rem] flex">
-        {/* Mobile toggle */}
-        <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
-          <button
-            onClick={() => setShowList(!showList)}
-            className="px-6 py-3 bg-gray-900 text-white rounded-full shadow-lg text-sm font-medium"
-          >
-            {showList ? "🗺️ 지도 보기" : `📋 목록 보기 (${filteredRestaurants.length})`}
-          </button>
-        </div>
+      <div className="flex-1 min-h-0 mt-[6rem] flex relative">
           {/* Map */}
-          <div
-            className={`flex-1 relative ${showList ? "hidden sm:block" : "block"}`}
-          >
+          <div className="flex-1 relative">
             <MapErrorBoundary>
               <LeafletMap
                 restaurants={filteredRestaurants}
@@ -103,10 +94,22 @@ export default function Home() {
             </MapErrorBoundary>
           </div>
 
+          {/* Sidebar toggle button */}
+          <button
+            onClick={() => setShowList(!showList)}
+            className={`absolute top-2 z-30 bg-white shadow-lg border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all ${
+              showList ? "right-[408px] hidden sm:block" : "right-2"
+            }`}
+          >
+            {showList ? "✕" : `📋 ${filteredRestaurants.length}`}
+          </button>
+
           {/* Restaurant list sidebar */}
           <div
-            className={`w-full sm:w-[400px] sm:border-l border-gray-200 overflow-y-auto bg-gray-50 ${
-              showList ? "block" : "hidden sm:block"
+            className={`border-l border-gray-200 overflow-y-auto bg-gray-50 transition-all ${
+              showList
+                ? "absolute sm:relative inset-0 sm:inset-auto w-full sm:w-[400px] z-20"
+                : "hidden"
             }`}
           >
             <div className="p-4">
@@ -114,6 +117,12 @@ export default function Home() {
                 <h2 className="text-sm font-medium text-gray-500">
                   {filteredRestaurants.length}개의 법카 맛집
                 </h2>
+                <button
+                  onClick={() => setShowList(false)}
+                  className="sm:hidden w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 text-gray-500"
+                >
+                  ✕
+                </button>
               </div>
               <div className="space-y-3">
                 <AdBanner />
