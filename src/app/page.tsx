@@ -32,11 +32,9 @@ export default function Home() {
   >(null);
   const [selectedMinRating, setSelectedMinRating] = useState<number | null>(null);
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
-  const [showList, setShowList] = useState(true);
-
-  useEffect(() => {
-    if (window.innerWidth < 640) setShowList(false);
-  }, []);
+  const [showList, setShowList] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 640 : true,
+  );
   const [visibleCount, setVisibleCount] = useState(30);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -69,7 +67,7 @@ export default function Home() {
     }
 
     return filtered;
-  }, [allRestaurants, selectedCategory, selectedPriceRange, selectedMinRating, userLocation]);
+  }, [selectedCategory, selectedPriceRange, selectedMinRating, userLocation]);
 
   return (
     <div className="fixed inset-0 flex flex-col">

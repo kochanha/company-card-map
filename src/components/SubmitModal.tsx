@@ -124,15 +124,13 @@ export default function SubmitModal({ isOpen, onClose }: SubmitModalProps) {
       .slice(0, 500)
       .replace(/[<>]/g, "");
 
-    const { provider, placeId, originalUrl } = parsed.result;
-
     const { error: dbError } = await supabase.from("submissions").insert({
       name: placeName || "제보 식당",
       category: "한식",
       price_range: form.priceRange,
       price_per_person: pricePerPerson,
       recommendation: sanitizedRecommendation || null,
-      map_url: originalUrl,
+      map_url: parsed.result.originalUrl,
     });
 
     setSubmitting(false);
