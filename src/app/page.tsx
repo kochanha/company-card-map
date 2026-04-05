@@ -151,8 +151,15 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[500] h-[50px] bg-white/90 border-t border-gray-200">
-        <AdBanner />
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[500] h-[50px] overflow-hidden bg-white/90 border-t border-gray-200">
+        <ins
+          className="adsbygoogle"
+          style={{ display: "block", width: "100%", height: "50px" }}
+          data-ad-client="ca-pub-5469568210848543"
+          data-ad-slot="3465314933"
+          data-ad-format="horizontal"
+          data-full-width-responsive="false"
+        />
       </div>
       <WelcomeModal />
       <SubmitModal
