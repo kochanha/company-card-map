@@ -32,9 +32,11 @@ export default function Home() {
   >(null);
   const [selectedMinRating, setSelectedMinRating] = useState<number | null>(null);
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
-  const [showList, setShowList] = useState(
-    typeof window !== "undefined" ? window.innerWidth >= 640 : true,
-  );
+  const [showList, setShowList] = useState(true);
+
+  useEffect(() => {
+    if (window.innerWidth < 640) setShowList(false);
+  }, []);
   const [visibleCount, setVisibleCount] = useState(30);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
@@ -95,7 +97,7 @@ export default function Home() {
           </div>
 
           {/* Sidebar wrapper with pull tab */}
-          <div className={`absolute top-0 right-0 bottom-0 z-20 flex transition-transform duration-300 ${
+          <div className={`absolute top-0 right-0 bottom-0 z-[1000] flex transition-transform duration-300 ${
             showList ? "translate-x-0" : "translate-x-[calc(100%-1.75rem)]"
           }`}>
             {/* Pull tab */}
