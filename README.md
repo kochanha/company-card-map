@@ -1,75 +1,126 @@
 # 법카맵 💳
 
-> 내 돈 쓰긴 아깝지만, 법인카드로는 가볼 만한 곳
-
-법인카드로 갈 만한 고급 맛집을 지도에서 찾아보는 서비스입니다.
+> Corporate card restaurant map — find upscale restaurants worth visiting on a company card.
 
 **[https://companycard.vercel.app](https://companycard.vercel.app)**
 
-## 주요 기능
+## Features
 
-- **지도 기반 탐색** - 1,700+ 식당을 지도에서 한눈에 확인
-- **필터링** - 가격대(3-5만/5-8만/8만+), 카테고리(한식/일식/양식 등), 구글 평점
-- **현재 위치** - 접속 시 내 주변 맛집부터 표시
-- **식당 공유** - 카카오맵/네이버지도 링크로 바로 이동
-- **제보 시스템** - 네이버지도 링크로 간편 제보, 관리자 승인 후 자동 반영
+- **Map-based exploration** — Browse 1,950+ restaurants on an interactive Leaflet map
+- **Filtering** — By price range (30K–50K / 50K–80K / 80K+ KRW), category (Korean, Japanese, Western, Chinese, Fine Dining, Buffet, BBQ, Seafood), and Google rating
+- **Geolocation** — Auto-detects user location and sorts by distance
+- **Quick links** — Open any restaurant directly in Kakao Map or Naver Map
+- **Submission system** — Submit restaurants via Naver Map or Kakao Map link, admin-approved and auto-synced on build
 
-## 지원 지역
+## Supported Regions
 
-서울 | 인천 | 수원 | 성남 | 부산 (추후 확대 예정)
+Seoul · Incheon · Suwon · Seongnam · Busan (more coming soon)
 
-## 기술 스택
+## Tech Stack
 
-| 영역 | 기술 |
-|------|------|
-| Frontend | Next.js, TypeScript, Tailwind CSS |
-| Map | Leaflet + OpenStreetMap |
-| Database | Supabase (제보 관리) |
-| Data | 카카오 Local API (식당 수집), Google Places API (평점) |
-| Deploy | Vercel |
+| Area | Technology |
+|------|-----------|
+| Framework | Next.js 16, React 19, TypeScript |
+| Styling | Tailwind CSS v4 |
+| Map | Leaflet + OpenStreetMap + MarkerCluster |
+| Database | Supabase (PostgreSQL) |
+| Data Pipeline | Kakao Local API (collection), Google Places API (ratings) |
+| Deployment | Vercel |
 
-## 데이터 파이프라인
+## Project Structure
 
 ```
-카카오 API로 식당 수집 → Google API로 평점 보강 → 정적 데이터 생성
-                                                        ↓
-사용자 제보 → Supabase → 관리자 승인 → 빌드 시 자동 통합 → 배포
+src/
+├── app/
+│   ├── layout.tsx          # Root layout with metadata + AdSense
+│   ├── page.tsx            # Main client page (map + list + filters)
+│   ├── error.tsx           # App-level error boundary
+│   └── globals.css         # Tailwind base styles
+├── components/
+│   ├── LeafletMap.tsx      # Interactive map with markers and clustering
+│   ├── FilterBar.tsx       # Price, category, and rating filter bar
+│   ├── RestaurantCard.tsx  # Restaurant list item card
+│   ├── Header.tsx          # Top navigation bar
+│   ├─�� SubmitModal.tsx     # Restaurant submission form
+│   ├── WelcomeModal.tsx    # First-visit welcome dialog
+│   └── AdBanner.tsx        # Google AdSense banner
+├── lib/
+│   ├── supabase.ts         # Supabase client initialization
+│   └── map-url-parser.ts   # Naver/Kakao Map URL parser and validator
+├── types/
+│   └── restaurant.ts       # Restaurant, Category, PriceRange types
+├── config/
+│   └── constants.ts        # App-wide constants (AdSense, map defaults, etc.)
+└── data/
+    └── restaurants.ts      # Generated restaurant data (~1,950 entries)
+
+scripts/
+├── fetch-restaurants.ts    # Scrape restaurants via Kakao Local API
+├── enrich-with-google.ts   # Enrich with Google Places ratings
+├── cleanup-restaurants.ts  # Filter out low-price restaurants
+├── sync-submissions.ts     # Sync approved Supabase submissions into data
+└── setup-supabase.sql      # Database schema for submissions table
 ```
 
-## 로컬 실행
+## Data Pipeline
+
+```
+Kakao API → fetch restaurants → Google API → enrich ratings → static data
+                                                                   ↓
+User submission → Supabase → admin approval → build-time sync → deploy
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 24+
+- npm
+- Supabase project (for submissions)
+
+### Setup
 
 ```bash
-# 의존성 설치
+# Install dependencies
 npm install
 
-# 환경변수 설정
+# Set up environment variables
 cp .env.local.example .env.local
-# .env.local에 API 키 입력
+# Fill in API keys (see below)
 
-# 프로덕션 빌드 & 실행
+# Run development server
+npm run dev
+
+# Production build and start
 npm run build && npm start
 ```
 
-### 환경변수
+### Environment Variables
 
-| 변수 | 설명 |
-|------|------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 프로젝트 URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon 공개 키 |
-| `KAKAO_REST_KEY` | 카카오 REST API 키 |
-| `GOOGLE_API_KEY` | Google Places API 키 |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous public key |
+| `KAKAO_REST_KEY` | Scripts only | Kakao REST API key (for data collection) |
+| `GOOGLE_API_KEY` | Scripts only | Google Places API key (for rating enrichment) |
+| `NEXT_PUBLIC_ADSENSE_ID` | No | Google AdSense publisher ID (has default) |
 
-## 스크립트
+### Scripts
 
 ```bash
-# 식당 데이터 수집 (카카오 API)
-npm run sync       # 승인된 제보 동기화
+npm run dev        # Start dev server
+npm run build      # Sync submissions + production build
+npm run sync       # Sync approved submissions only
+npm run lint       # Run ESLint
+npm run test       # Run unit tests (Vitest)
+npm run test:watch # Run tests in watch mode
 
-npx tsx scripts/fetch-restaurants.ts      # 식당 수집
-npx tsx scripts/enrich-with-google.ts     # 구글 평점 보강
-npx tsx scripts/cleanup-restaurants.ts    # 저가 식당 제거
+# Data pipeline scripts
+npx tsx scripts/fetch-restaurants.ts      # Scrape restaurants from Kakao
+npx tsx scripts/enrich-with-google.ts     # Add Google ratings
+npx tsx scripts/cleanup-restaurants.ts    # Remove low-price entries
 ```
 
-## 라이선스
+## License
 
 MIT
