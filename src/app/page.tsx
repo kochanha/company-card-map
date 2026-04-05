@@ -116,6 +116,7 @@ export default function Home() {
                 </h2>
               </div>
               <div className="space-y-3">
+                <AdBanner />
                 {filteredRestaurants.slice(0, visibleCount).map((restaurant: Restaurant, index: number) => (
                   <div key={restaurant.id}>
                     <RestaurantCard
