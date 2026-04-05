@@ -151,7 +151,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[500]">
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[500] h-[50px] bg-white/90 border-t border-gray-200">
         <AdBanner />
       </div>
       <WelcomeModal />
