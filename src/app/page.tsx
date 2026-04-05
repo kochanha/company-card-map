@@ -19,6 +19,7 @@ import RestaurantCard from "@/components/RestaurantCard";
 import SubmitModal from "@/components/SubmitModal";
 import WelcomeModal from "@/components/WelcomeModal";
 import AdBanner from "@/components/AdBanner";
+import MapErrorBoundary from "@/components/MapErrorBoundary";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(
@@ -95,11 +96,13 @@ export default function Home() {
           <div
             className={`flex-1 relative ${showList ? "hidden sm:block" : "block"}`}
           >
-            <LeafletMap
-              restaurants={filteredRestaurants}
-              selectedId={selectedRestaurantId}
-              onSelectRestaurant={setSelectedRestaurantId}
-            />
+            <MapErrorBoundary>
+              <LeafletMap
+                restaurants={filteredRestaurants}
+                selectedId={selectedRestaurantId}
+                onSelectRestaurant={setSelectedRestaurantId}
+              />
+            </MapErrorBoundary>
             <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[500] w-[320px] sm:w-[468px]">
               <AdBanner />
             </div>
