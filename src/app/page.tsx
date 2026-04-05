@@ -68,7 +68,7 @@ export default function Home() {
   }, [allRestaurants, selectedCategory, selectedPriceRange, selectedMinRating, userLocation]);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       <Header onSubmitClick={() => setIsSubmitOpen(true)} />
       <FilterBar
         selectedCategory={selectedCategory}
