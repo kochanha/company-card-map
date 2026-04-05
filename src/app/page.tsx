@@ -103,9 +103,6 @@ export default function Home() {
                 onSelectRestaurant={setSelectedRestaurantId}
               />
             </MapErrorBoundary>
-            <div className="hidden sm:block absolute bottom-16 left-1/2 -translate-x-1/2 z-[500] w-[468px]">
-              <AdBanner />
-            </div>
           </div>
 
           {/* Restaurant list sidebar */}
@@ -121,13 +118,15 @@ export default function Home() {
                 </h2>
               </div>
               <div className="space-y-3">
-                {filteredRestaurants.slice(0, visibleCount).map((restaurant: Restaurant) => (
-                  <RestaurantCard
-                    key={restaurant.id}
-                    restaurant={restaurant}
-                    isSelected={selectedRestaurantId === restaurant.id}
-                    onClick={() => setSelectedRestaurantId(restaurant.id)}
-                  />
+                {filteredRestaurants.slice(0, visibleCount).map((restaurant: Restaurant, index: number) => (
+                  <div key={restaurant.id}>
+                    <RestaurantCard
+                      restaurant={restaurant}
+                      isSelected={selectedRestaurantId === restaurant.id}
+                      onClick={() => setSelectedRestaurantId(restaurant.id)}
+                    />
+                    {index === 4 && <div className="py-2"><AdBanner /></div>}
+                  </div>
                 ))}
                 {filteredRestaurants.length === 0 && (
                   <div className="text-center py-12">
@@ -151,16 +150,6 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[500] h-[50px] overflow-hidden bg-white/90 border-t border-gray-200">
-        <ins
-          className="adsbygoogle"
-          style={{ display: "block", width: "100%", height: "50px" }}
-          data-ad-client="ca-pub-5469568210848543"
-          data-ad-slot="3465314933"
-          data-ad-format="horizontal"
-          data-full-width-responsive="false"
-        />
-      </div>
       <WelcomeModal />
       <SubmitModal
         isOpen={isSubmitOpen}
