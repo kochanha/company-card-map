@@ -68,7 +68,7 @@ export default function Home() {
   }, [allRestaurants, selectedCategory, selectedPriceRange, selectedMinRating, userLocation]);
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="fixed inset-0 flex flex-col">
       <Header onSubmitClick={() => setIsSubmitOpen(true)} />
       <FilterBar
         selectedCategory={selectedCategory}
@@ -80,9 +80,9 @@ export default function Home() {
       />
 
       {/* Main content area */}
-      <div className="flex-1 min-h-0 pt-[6rem] relative">
+      <div className="flex-1 min-h-0 mt-[6rem] flex">
         {/* Mobile toggle */}
-        <div className="sm:hidden fixed bottom-20 left-1/2 -translate-x-1/2 z-30">
+        <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
           <button
             onClick={() => setShowList(!showList)}
             className="px-6 py-3 bg-gray-900 text-white rounded-full shadow-lg text-sm font-medium"
@@ -90,8 +90,6 @@ export default function Home() {
             {showList ? "🗺️ 지도 보기" : `📋 목록 보기 (${filteredRestaurants.length})`}
           </button>
         </div>
-
-        <div className="h-full flex">
           {/* Map */}
           <div
             className={`flex-1 relative ${showList ? "hidden sm:block" : "block"}`}
@@ -147,7 +145,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
       </div>
 
       <WelcomeModal />

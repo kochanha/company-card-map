@@ -167,7 +167,7 @@ export default function LeafletMap({
             .bindPopup("현재 위치");
         },
         () => {},
-        { enableHighAccuracy: true, timeout: 5000 },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
       );
     }
 
