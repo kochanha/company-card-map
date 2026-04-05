@@ -94,21 +94,20 @@ export default function Home() {
             </MapErrorBoundary>
           </div>
 
-          {/* Pull tab handle - floats on map edge */}
-          <button
-            onClick={() => setShowList(!showList)}
-            className="absolute top-1/2 -translate-y-1/2 z-30 w-7 h-16 bg-white/90 backdrop-blur-sm border border-r-0 border-gray-300 rounded-l-lg shadow-md flex items-center justify-center hover:bg-white transition-all duration-300"
-            style={{ right: showList ? (typeof window !== "undefined" && window.innerWidth < 640 ? "calc(100% - 7px)" : "400px") : "0px" }}
-          >
-            <span className="text-gray-500 text-sm font-bold">{showList ? "›" : "‹"}</span>
-          </button>
+          {/* Sidebar wrapper with pull tab */}
+          <div className={`absolute top-0 right-0 bottom-0 z-20 flex transition-transform duration-300 ${
+            showList ? "translate-x-0" : "translate-x-[calc(100%-1.75rem)]"
+          }`}>
+            {/* Pull tab */}
+            <button
+              onClick={() => setShowList(!showList)}
+              className="self-center shrink-0 w-7 h-16 bg-white/90 backdrop-blur-sm border border-r-0 border-gray-300 rounded-l-lg shadow-md flex items-center justify-center hover:bg-white"
+            >
+              <span className="text-gray-500 text-sm font-bold">{showList ? "›" : "‹"}</span>
+            </button>
 
-          {/* Restaurant list sidebar - overlays on map */}
-          <div
-            className={`absolute top-0 right-0 bottom-0 z-20 overflow-y-auto bg-gray-50 border-l border-gray-200 transition-all duration-300 ${
-              showList ? "w-full sm:w-[400px]" : "w-0 border-l-0 overflow-hidden"
-            }`}
-          >
+            {/* Restaurant list sidebar */}
+            <div className="w-screen sm:w-[400px] overflow-y-auto bg-gray-50 border-l border-gray-200">
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-medium text-gray-500">
@@ -151,6 +150,7 @@ export default function Home() {
                 )}
               </div>
             </div>
+          </div>
           </div>
       </div>
 
