@@ -82,9 +82,9 @@ export default function Home() {
       />
 
       {/* Main content area */}
-      <div className="flex-1 min-h-0 mt-[6rem] flex">
-          {/* Map */}
-          <div className="flex-1 relative min-w-0">
+      <div className="flex-1 min-h-0 mt-[6rem] relative">
+          {/* Map - always full width */}
+          <div className="absolute inset-0">
             <MapErrorBoundary>
               <LeafletMap
                 restaurants={filteredRestaurants}
@@ -94,22 +94,23 @@ export default function Home() {
             </MapErrorBoundary>
           </div>
 
-          {/* Pull tab + Sidebar */}
-          <div className="flex shrink-0">
-            {/* Pull tab handle */}
-            <button
-              onClick={() => setShowList(!showList)}
-              className="self-center shrink-0 w-6 h-16 -mr-px bg-white border border-r-0 border-gray-300 rounded-l-lg shadow-md flex items-center justify-center hover:bg-gray-50 z-30"
-            >
-              <span className="text-gray-400 text-sm font-bold">{showList ? "›" : "‹"}</span>
-            </button>
+          {/* Pull tab handle - floats on map edge */}
+          <button
+            onClick={() => setShowList(!showList)}
+            className={`absolute top-1/2 -translate-y-1/2 z-30 w-6 h-16 bg-white/90 backdrop-blur-sm border border-r-0 border-gray-300 rounded-l-lg shadow-md flex items-center justify-center hover:bg-white transition-all duration-300 ${
+              showList ? "right-full sm:right-[400px]" : "right-0"
+            }`}
+            style={{ right: showList ? undefined : 0 }}
+          >
+            <span className="text-gray-500 text-sm font-bold">{showList ? "›" : "‹"}</span>
+          </button>
 
-            {/* Restaurant list sidebar */}
-            <div
-              className={`overflow-y-auto bg-gray-50 border-l border-gray-200 transition-all duration-300 ${
-                showList ? "w-screen sm:w-[400px]" : "w-0 border-l-0 overflow-hidden"
-              }`}
-            >
+          {/* Restaurant list sidebar - overlays on map */}
+          <div
+            className={`absolute top-0 right-0 bottom-0 z-20 overflow-y-auto bg-gray-50 border-l border-gray-200 transition-all duration-300 ${
+              showList ? "w-full sm:w-[400px]" : "w-0 border-l-0 overflow-hidden"
+            }`}
+          >
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-medium text-gray-500">
@@ -152,7 +153,6 @@ export default function Home() {
                 )}
               </div>
             </div>
-          </div>
           </div>
       </div>
 
