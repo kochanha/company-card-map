@@ -97,10 +97,8 @@ export default function Home() {
           {/* Pull tab handle - floats on map edge */}
           <button
             onClick={() => setShowList(!showList)}
-            className={`absolute top-1/2 -translate-y-1/2 z-30 w-6 h-16 bg-white/90 backdrop-blur-sm border border-r-0 border-gray-300 rounded-l-lg shadow-md flex items-center justify-center hover:bg-white transition-all duration-300 ${
-              showList ? "right-full sm:right-[400px]" : "right-0"
-            }`}
-            style={{ right: showList ? undefined : 0 }}
+            className="absolute top-1/2 -translate-y-1/2 z-30 w-7 h-16 bg-white/90 backdrop-blur-sm border border-r-0 border-gray-300 rounded-l-lg shadow-md flex items-center justify-center hover:bg-white transition-all duration-300"
+            style={{ right: showList ? (typeof window !== "undefined" && window.innerWidth < 640 ? "calc(100% - 7px)" : "400px") : "0px" }}
           >
             <span className="text-gray-500 text-sm font-bold">{showList ? "›" : "‹"}</span>
           </button>
