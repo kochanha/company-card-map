@@ -123,15 +123,14 @@ export default function Home() {
                 </button>
               </div>
               <div className="space-y-3">
-                <AdBanner />
                 {filteredRestaurants.slice(0, visibleCount).map((restaurant: Restaurant, index: number) => (
                   <div key={restaurant.id}>
+                    {index % 5 === 0 && <div className="py-1"><AdBanner /></div>}
                     <RestaurantCard
                       restaurant={restaurant}
                       isSelected={selectedRestaurantId === restaurant.id}
                       onClick={() => setSelectedRestaurantId(restaurant.id)}
                     />
-                    {index === 4 && <div className="py-2"><AdBanner /></div>}
                   </div>
                 ))}
                 {filteredRestaurants.length === 0 && (
