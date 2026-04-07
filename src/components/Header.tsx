@@ -23,10 +23,13 @@ export default function Header({ onSubmitClick }: HeaderProps) {
               내 돈 쓰긴 아깝지만, 법카로는 가볼 만한 곳 · 가격 정보는 참고용
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
+            <a href="/guide" className="hidden sm:block px-2 py-2 text-gray-500 text-xs hover:text-gray-700 transition-colors">가이드</a>
+            <a href="/regions" className="hidden sm:block px-2 py-2 text-gray-500 text-xs hover:text-gray-700 transition-colors">지역별</a>
+            <a href="/faq" className="hidden sm:block px-2 py-2 text-gray-500 text-xs hover:text-gray-700 transition-colors">FAQ</a>
             <button
               onClick={() => setShowContact(true)}
-              className="px-3 py-2 text-gray-500 text-sm hover:text-gray-700 transition-colors"
+              className="px-2 sm:px-3 py-2 text-gray-500 text-sm hover:text-gray-700 transition-colors"
             >
               문의
             </button>
