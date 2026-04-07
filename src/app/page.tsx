@@ -94,6 +94,22 @@ export default function Home() {
             </MapErrorBoundary>
           </div>
 
+          {/* Bottom navigation buttons */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[999] flex gap-2">
+            <a
+              href="/calculator"
+              className="px-4 py-2.5 bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-medium rounded-full shadow-lg border border-gray-200 hover:bg-white transition-colors"
+            >
+              🧮 한도 계산기
+            </a>
+            <a
+              href="/reviews"
+              className="px-4 py-2.5 bg-white/90 backdrop-blur-sm text-gray-700 text-sm font-medium rounded-full shadow-lg border border-gray-200 hover:bg-white transition-colors"
+            >
+              📝 후기 게시판
+            </a>
+          </div>
+
           {/* Sidebar wrapper with pull tab */}
           <div className={`absolute top-0 right-0 bottom-0 z-[1000] flex transition-transform duration-300 ${
             showList ? "translate-x-0" : "translate-x-[calc(100%-1.75rem)]"
