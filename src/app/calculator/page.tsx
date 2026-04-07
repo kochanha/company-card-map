@@ -2,7 +2,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { restaurants } from "@/data/restaurants";
 import AdBanner from "@/components/AdBanner";
 import type { Category } from "@/types/restaurant";
@@ -42,9 +42,19 @@ function formatWon(amount: number): string {
 
 export default function CalculatorPage() {
   const [headcount, setHeadcount] = useState(4);
+  const [sliderValue, setSliderValue] = useState(50000);
   const [limitPerPerson, setLimitPerPerson] = useState(50000);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const totalBudget = headcount * limitPerPerson;
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setLimitPerPerson(sliderValue);
+    }, 300);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [sliderValue]);
+
+  const totalBudget = headcount * sliderValue;
 
   const filteredByCategory = useMemo(() => {
     const eligible = restaurants.filter(
@@ -79,7 +89,7 @@ export default function CalculatorPage() {
   }
 
   function handleLimitChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setLimitPerPerson(Number(e.target.value));
+    setSliderValue(Number(e.target.value));
   }
 
   function handleHeadcountInput(e: React.ChangeEvent<HTMLInputElement>) {
@@ -167,7 +177,7 @@ export default function CalculatorPage() {
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 인당 한도{" "}
                 <span className="text-blue-600 font-bold">
-                  {formatWon(limitPerPerson)}
+                  {formatWon(sliderValue)}
                 </span>
               </label>
               <input
@@ -175,7 +185,7 @@ export default function CalculatorPage() {
                 min={20000}
                 max={150000}
                 step={5000}
-                value={limitPerPerson}
+                value={sliderValue}
                 onChange={handleLimitChange}
                 className="w-full accent-blue-600"
               />
@@ -190,14 +200,14 @@ export default function CalculatorPage() {
           <div className="mt-6 pt-5 border-t border-gray-100">
             <div className="flex items-center justify-between">
               <span className="text-gray-600">
-                총 예산 ({headcount}명 × {formatWon(limitPerPerson)})
+                총 예산 ({headcount}명 × {formatWon(sliderValue)})
               </span>
               <span className="text-2xl font-bold text-amber-600">
                 {formatWon(totalBudget)}
               </span>
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              인당 {formatWon(limitPerPerson)} 이하 식당 {totalCount}개 검색됨
+              인당 {formatWon(sliderValue)} 이하 식당 {totalCount}개 검색됨
             </p>
           </div>
         </div>
@@ -229,7 +239,7 @@ export default function CalculatorPage() {
                     </span>
                   </h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {list.map((restaurant) => {
+                    {list.slice(0, 6).map((restaurant) => {
                       const kakaoUrl = `https://map.kakao.com/link/search/${encodeURIComponent(restaurant.name)}`;
                       const naverUrl =
                         restaurant.naverMapUrl ??
