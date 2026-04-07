@@ -15,12 +15,25 @@ interface Review {
   nickname: string;
 }
 
+interface Comment {
+  id: string;
+  created_at: string;
+  review_id: string;
+  nickname: string;
+  content: string;
+}
+
 interface ReviewFormData {
   restaurant_name: string;
   content: string;
   rating: number;
   price_per_person: string;
   nickname: string;
+}
+
+interface CommentFormData {
+  nickname: string;
+  content: string;
 }
 
 function sanitize(str: string): string {
@@ -71,12 +84,135 @@ function formatPrice(price: number | null): string {
   return price.toLocaleString("ko-KR") + "원";
 }
 
+interface CommentSectionProps {
+  reviewId: string;
+}
+
+function CommentSection({ reviewId }: CommentSectionProps) {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [form, setForm] = useState<CommentFormData>({ nickname: "", content: "" });
+
+  const fetchComments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .select("*")
+        .eq("review_id", reviewId)
+        .order("created_at", { ascending: true });
+      if (!error && data) {
+        setComments(data as Comment[]);
+      }
+    } catch {
+      // graceful: supabase may not be configured
+    } finally {
+      setLoading(false);
+    }
+  }, [reviewId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitError(null);
+
+    const nickname = sanitize(form.nickname.trim()) || "익명";
+    const content = sanitize(form.content.trim());
+
+    if (!content) {
+      setSubmitError("댓글 내용을 입력해주세요.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("comments").insert({
+        review_id: reviewId,
+        nickname,
+        content,
+      });
+      if (error) {
+        setSubmitError("댓글 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      } else {
+        setForm({ nickname: "", content: "" });
+        await fetchComments();
+      }
+    } catch {
+      setSubmitError("네트워크 오류가 발생했습니다.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200">
+      {loading ? (
+        <p className="text-xs text-gray-400">댓글 로딩 중...</p>
+      ) : (
+        <>
+          {comments.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {comments.map((comment) => (
+                <div key={comment.id} className="bg-white rounded-lg px-3 py-2 border border-gray-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium text-gray-700">{comment.nickname || "익명"}</span>
+                    <span className="text-xs text-gray-400">{formatDate(comment.created_at)}</span>
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{comment.content}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-2">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={form.nickname}
+                onChange={(e) => setForm((f) => ({ ...f, nickname: e.target.value }))}
+                placeholder="닉네임 (익명)"
+                className="w-24 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shrink-0"
+                maxLength={30}
+              />
+              <input
+                type="text"
+                value={form.content}
+                onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
+                placeholder="댓글을 입력하세요"
+                className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                maxLength={500}
+              />
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              >
+                {submitting ? "등록 중" : "등록"}
+              </button>
+            </div>
+            {submitError && (
+              <p className="text-xs text-red-600">{submitError}</p>
+            )}
+          </form>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
   const [form, setForm] = useState<ReviewFormData>({
     restaurant_name: "",
     content: "",
@@ -94,6 +230,25 @@ export default function ReviewsPage() {
         .order("created_at", { ascending: false });
       if (!error && data) {
         setReviews(data as Review[]);
+        // fetch comment counts for all reviews
+        const ids = (data as Review[]).map((r) => r.id);
+        if (ids.length > 0) {
+          try {
+            const { data: countData } = await supabase
+              .from("comments")
+              .select("review_id")
+              .in("review_id", ids);
+            if (countData) {
+              const counts: Record<string, number> = {};
+              for (const row of countData as { review_id: string }[]) {
+                counts[row.review_id] = (counts[row.review_id] ?? 0) + 1;
+              }
+              setCommentCounts(counts);
+            }
+          } catch {
+            // graceful
+          }
+        }
       }
     } catch {
       // graceful: supabase may not be configured
@@ -105,6 +260,18 @@ export default function ReviewsPage() {
   useEffect(() => {
     fetchReviews();
   }, [fetchReviews]);
+
+  function toggleComments(reviewId: string) {
+    setExpandedComments((prev) => {
+      const next = new Set(prev);
+      if (next.has(reviewId)) {
+        next.delete(reviewId);
+      } else {
+        next.add(reviewId);
+      }
+      return next;
+    });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -343,6 +510,20 @@ export default function ReviewsPage() {
                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
                   {review.content}
                 </p>
+
+                <button
+                  type="button"
+                  onClick={() => toggleComments(review.id)}
+                  className="mt-3 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                >
+                  {expandedComments.has(review.id)
+                    ? "댓글 닫기"
+                    : `댓글 ${commentCounts[review.id] ? commentCounts[review.id] + "개" : "쓰기"}`}
+                </button>
+
+                {expandedComments.has(review.id) && (
+                  <CommentSection reviewId={review.id} />
+                )}
               </div>
             ))}
           </div>
